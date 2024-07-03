@@ -1,0 +1,6 @@
+.git
+.dockerignore
+db.sqlite
+node_modules
+test
+Dockerfile

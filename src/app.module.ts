@@ -10,6 +10,7 @@ import { PostsModule } from './modules/posts/posts.module';
 // import { BullModule } from '@nestjs/bull';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AclModule } from './modules/acl/acl.module';
+import { HealthCheckModule } from './modules/healthcheck/healthcheck.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { AclModule } from './modules/acl/acl.module';
     AuthModule,
     UsersModule,
     PostsModule,
+    HealthCheckModule,
   ],
 })
 export class AppModule {}
