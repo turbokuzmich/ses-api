@@ -1,5 +1,5 @@
 import { Controller, UseGuards, Get } from '@nestjs/common';
-import { AuthGuard } from 'src/guards/auth';
+import { AuthGuard } from '../auth/guards/auth';
 import { GetUser } from '../auth/decorators/user.decorator';
 import { UserWithPosts } from './models';
 import { UserWithPostsPipe } from './pipes/user.with.posts.pipe';

@@ -6,11 +6,10 @@ import { User, Subscription } from './models';
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectModel(User) private userModel: typeof User,
-    @InjectModel(Subscription) private subscriptionModel: typeof Subscription,
-  ) {
-    // console.log(this.subscriptionModel);
-  }
+    @InjectModel(User) private readonly userModel: typeof User,
+    @InjectModel(Subscription)
+    private readonly subscriptionModel: typeof Subscription,
+  ) {}
 
   // @OnEvent('auth.signin')
   // async handleUserSignin(...args: any[]) {

@@ -3,5 +3,5 @@ import { Sequelize } from 'sequelize-typescript';
 
 @Injectable()
 export class AclService {
-  constructor(private sequelize: Sequelize) {}
+  constructor(private readonly sequelize: Sequelize) {}
 }

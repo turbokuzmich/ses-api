@@ -5,7 +5,8 @@ import { Post, UserWithPosts } from './models';
 @Injectable()
 export class PostsService {
   constructor(
-    @InjectModel(UserWithPosts) private userModel: typeof UserWithPosts,
-    @InjectModel(Post) private postModel: typeof Post,
+    @InjectModel(UserWithPosts)
+    private readonly userModel: typeof UserWithPosts,
+    @InjectModel(Post) private readonly postModel: typeof Post,
   ) {}
 }

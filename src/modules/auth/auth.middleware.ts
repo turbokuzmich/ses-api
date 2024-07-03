@@ -5,7 +5,7 @@ import { isSome } from 'fp-ts/lib/Option';
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
-  constructor(private authService: AuthService) {}
+  constructor(private readonly authService: AuthService) {}
 
   async use(req: Request, _: Response, next: (error?: any) => void) {
     const user = await this.authService.getUserFromRequest(req);

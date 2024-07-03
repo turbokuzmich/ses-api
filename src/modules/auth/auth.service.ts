@@ -24,10 +24,10 @@ type Token = z.infer<typeof tokenSchema>;
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel(User) private userModel: typeof User,
-    // @InjectQueue('authorization') private queue: Queue,
-    private config: ConfigService,
-    // private eventEmitter: EventEmitter2,
+    @InjectModel(User) private readonly userModel: typeof User,
+    // @InjectQueue('authorization') private readonly queue: Queue,
+    private readonly config: ConfigService,
+    // private readonly eventEmitter: EventEmitter2,
   ) {}
 
   sign(data: any) {
