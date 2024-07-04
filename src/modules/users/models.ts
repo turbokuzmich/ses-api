@@ -22,27 +22,27 @@ export class User extends Model {
   @PrimaryKey
   @AutoIncrement
   @Column(DataTypes.INTEGER)
-  id: number;
+  id!: number;
 
   @AllowNull(false)
   @Column(DataTypes.TEXT)
-  name: string;
+  name!: string;
 
   @AllowNull(false)
   @Unique
   @Validate({ isEmail: true })
   @Column(DataTypes.TEXT)
-  email: string;
+  email!: string;
 
   @AllowNull(false)
   @Column(DataTypes.TEXT)
-  password: string;
+  password!: string;
 
   @HasMany(() => Subscription, 'userId')
-  subscriptions: Subscription[];
+  subscriptions?: Subscription[];
 
   @HasMany(() => Subscription, 'friendId')
-  subscribers: Subscription[];
+  subscribers?: Subscription[];
 }
 
 @Table({
@@ -58,10 +58,10 @@ export class Subscription extends Model {
   @ForeignKey(() => User)
   @AllowNull(false)
   @Column(DataTypes.INTEGER)
-  userId: number;
+  userId!: number;
 
   @BelongsTo(() => User, 'userId')
-  user: User;
+  user!: User;
 
   @Index({
     name: 'index_subscriptions_userid_friendid',
@@ -72,8 +72,8 @@ export class Subscription extends Model {
   @ForeignKey(() => User)
   @AllowNull(false)
   @Column(DataTypes.INTEGER)
-  friendId: number;
+  friendId!: number;
 
   @BelongsTo(() => User, 'friendId')
-  friend: User;
+  friend!: User;
 }

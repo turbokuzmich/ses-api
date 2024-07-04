@@ -14,6 +14,7 @@ import { SigninDto } from './dto/signin';
 import { Request } from 'express';
 import { z } from 'zod';
 import { pipe } from 'fp-ts/lib/function';
+import type { Config } from 'src/config';
 
 const tokenSchema = z.object({
   email: z.string({ required_error: 'asd' }),
@@ -26,15 +27,14 @@ export class AuthService {
   constructor(
     @InjectModel(User) private readonly userModel: typeof User,
     // @InjectQueue('authorization') private readonly queue: Queue,
-    private readonly config: ConfigService,
+    private readonly config: ConfigService<Config, true>,
     // private readonly eventEmitter: EventEmitter2,
   ) {}
 
   sign(data: any) {
     const base64 = Buffer.from(JSON.stringify(data)).toString('base64');
-    const signature = createHmac('sha256', this.config.get('auth.secret'))
-      .update(base64)
-      .digest('hex');
+    const secret = this.config.get('auth.secret', { infer: true });
+    const signature = createHmac('sha256', secret).update(base64).digest('hex');
 
     return `${base64}.${signature}`;
   }
@@ -46,7 +46,8 @@ export class AuthService {
       return null;
     }
 
-    const inputSignature = createHmac('sha256', this.config.get('auth.secret'))
+    const secret = this.config.get('auth.secret', { infer: true });
+    const inputSignature = createHmac('sha256', secret)
       .update(base64)
       .digest('hex');
 
@@ -72,10 +73,8 @@ export class AuthService {
       return either.left('User already exists');
     }
 
-    const encryptedPassword = createHmac(
-      'sha256',
-      this.config.get('auth.secret'),
-    )
+    const secret = this.config.get('auth.secret', { infer: true });
+    const encryptedPassword = createHmac('sha256', secret)
       .update(data.password)
       .digest('hex');
 
@@ -96,10 +95,8 @@ export class AuthService {
   async signin(
     data: SigninDto,
   ): Promise<either.Either<string, [User, string]>> {
-    const encryptedPassword = createHmac(
-      'sha256',
-      this.config.get('auth.secret'),
-    )
+    const secret = this.config.get('auth.secret', { infer: true });
+    const encryptedPassword = createHmac('sha256', secret)
       .update(data.password)
       .digest('hex');
 

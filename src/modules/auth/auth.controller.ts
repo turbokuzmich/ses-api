@@ -30,8 +30,7 @@ export class AuthController {
           return { status: 'error', error } as any;
         },
         ([user, token]) => {
-          response.cookie(this.config.get('session.cookie'), token);
-          return { status: 'success', id: user.id } as any;
+          return { status: 'success', id: user.id, token } as any;
         },
       ),
     );

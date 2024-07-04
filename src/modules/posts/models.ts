@@ -25,19 +25,19 @@ export class Post extends Model {
   @PrimaryKey
   @AutoIncrement
   @Column(DataTypes.INTEGER)
-  id: number;
+  id!: number;
 
   @AllowNull(false)
   @Column(DataTypes.TEXT)
-  text: string;
+  text!: string;
 
   @ForeignKey(() => User)
   @AllowNull(false)
   @Column(DataTypes.INTEGER)
-  userId: number;
+  userId!: number;
 
   @BelongsTo(() => User, 'userId')
-  user: User;
+  user!: User;
 }
 
 @Table({
@@ -46,5 +46,5 @@ export class Post extends Model {
 })
 export class UserWithPosts extends User {
   @HasMany(() => Post)
-  posts: Post[];
+  posts?: Post[];
 }
