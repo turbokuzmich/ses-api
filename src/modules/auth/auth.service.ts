@@ -17,7 +17,7 @@ import { pipe } from 'fp-ts/lib/function';
 import type { Config } from 'src/config';
 
 const tokenSchema = z.object({
-  email: z.string({ required_error: 'asd' }),
+  id: z.number().positive(),
 });
 
 type Token = z.infer<typeof tokenSchema>;
@@ -31,6 +31,12 @@ export class AuthService {
     // private readonly eventEmitter: EventEmitter2,
   ) {}
 
+  private encrypt(something: string) {
+    return createHmac('sha256', this.config.get('auth.secret', { infer: true }))
+      .update(something)
+      .digest('hex');
+  }
+
   sign(data: any) {
     const base64 = Buffer.from(JSON.stringify(data)).toString('base64');
     const secret = this.config.get('auth.secret', { infer: true });
@@ -39,17 +45,14 @@ export class AuthService {
     return `${base64}.${signature}`;
   }
 
-  extract(input: string) {
+  extract(input: string): object | null {
     const [base64, signature] = input.split('.');
 
     if (!(base64 && signature)) {
       return null;
     }
 
-    const secret = this.config.get('auth.secret', { infer: true });
-    const inputSignature = createHmac('sha256', secret)
-      .update(base64)
-      .digest('hex');
+    const inputSignature = this.encrypt(base64);
 
     if (signature !== inputSignature) {
       return null;
@@ -62,7 +65,9 @@ export class AuthService {
     }
   }
 
-  async signup(data: SignupDto): Promise<either.Either<string, User>> {
+  async signup(
+    data: SignupDto,
+  ): Promise<either.Either<string, [User, string]>> {
     const existingUserWithEmail = await this.userModel.findAll({
       where: {
         email: data.login,
@@ -73,10 +78,7 @@ export class AuthService {
       return either.left('User already exists');
     }
 
-    const secret = this.config.get('auth.secret', { infer: true });
-    const encryptedPassword = createHmac('sha256', secret)
-      .update(data.password)
-      .digest('hex');
+    const encryptedPassword = this.encrypt(data.password);
 
     const newUser = await this.userModel.create({
       name: data.nickname,
@@ -89,16 +91,13 @@ export class AuthService {
     //   data: { name: newUser.name, email: newUser.email },
     // });
 
-    return either.right(newUser);
+    return either.right([newUser, this.sign({ id: newUser.id })]);
   }
 
   async signin(
     data: SigninDto,
   ): Promise<either.Either<string, [User, string]>> {
-    const secret = this.config.get('auth.secret', { infer: true });
-    const encryptedPassword = createHmac('sha256', secret)
-      .update(data.password)
-      .digest('hex');
+    const encryptedPassword = this.encrypt(data.password);
 
     const user = await this.userModel.findOne({
       where: {
@@ -110,25 +109,58 @@ export class AuthService {
     // this.eventEmitter.emit('auth.signin', user.id);
 
     return user
-      ? either.right([user, this.sign({ email: user.email })])
+      ? either.right([user, this.sign({ id: user.id })])
       : either.left('User not found');
   }
 
+  private getTokenFromQuery(request: Request): option.Option<Token> {
+    return pipe(
+      option.some(request.query.token),
+      option.map((token) => z.coerce.string().parse(token)),
+      option.map((token) => this.extract(token)),
+      option.flatMap((parsedToken) =>
+        parsedToken
+          ? option.some(tokenSchema.safeParse(parsedToken))
+          : option.none,
+      ),
+      option.flatMap((validatedToken) =>
+        validatedToken.success
+          ? option.some(validatedToken.data as Token)
+          : option.none,
+      ),
+    );
+  }
+
+  private getTokenFromHeaders(request: Request): option.Option<Token> {
+    return pipe(
+      option.some(request.headers.authorization),
+      option.map((header) =>
+        decodeURIComponent(
+          z.coerce
+            .string()
+            .parse(header)
+            .replace(/^Bearer\s/, ''),
+        ),
+      ),
+      option.map((token) => this.extract(token)),
+      option.flatMap((parsedToken) =>
+        parsedToken
+          ? option.some(tokenSchema.safeParse(parsedToken))
+          : option.none,
+      ),
+      option.flatMap((validatedToken) =>
+        validatedToken.success
+          ? option.some(validatedToken.data as Token)
+          : option.none,
+      ),
+    );
+  }
+
   getTokenFromRequest(request: Request): option.Option<Token> {
-    const authorization = request.headers.authorization;
-
-    if (!authorization) {
-      return option.none;
-    }
-
-    const token = authorization.replace(/^Bearer\s/, '');
-    const user = this.extract(decodeURIComponent(token));
-
-    if (!user || !tokenSchema.safeParse(user).success) {
-      return option.none;
-    }
-
-    return option.some(user as Token);
+    return pipe(
+      this.getTokenFromQuery(request),
+      option.orElse(() => this.getTokenFromHeaders(request)),
+    );
   }
 
   async getUserFromRequest(request: Request): Promise<option.Option<User>> {
@@ -139,14 +171,10 @@ export class AuthService {
       option.match(
         () => Promise.resolve(option.none),
         (token) =>
-          User.findOne({ where: { email: token.email } }).then((user) =>
+          User.findByPk(token.id).then((user) =>
             user ? option.some(user) : option.none,
           ),
       ),
     );
-  }
-
-  isAuthenticated(request: Request) {
-    return Boolean(this.getTokenFromRequest(request));
   }
 }

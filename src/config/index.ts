@@ -12,9 +12,6 @@ export type Config = {
   auth: {
     secret: string;
   };
-  session: {
-    cookie: string;
-  };
 };
 
 export default async function loadConfig(): Promise<Config> {
@@ -54,9 +51,6 @@ export default async function loadConfig(): Promise<Config> {
     },
     auth: {
       secret: process.env.AUTH_SECRET ?? 'secret',
-    },
-    session: {
-      cookie: process.env.SESSION_COOKIE_NAME ?? 'authcookie',
     },
   };
 
