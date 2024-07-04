@@ -1,14 +1,16 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/guards/auth';
 import { UsersService } from './users.service';
+import { GetUser } from '../auth/decorators/user.decorator';
+import { User } from './models';
 
 @Controller('users')
-@UseGuards(AuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get()
-  async getUsers() {
-    return await this.usersService.listUsers();
+  @Get('me')
+  @UseGuards(AuthGuard)
+  async me(@GetUser() user: User) {
+    return user.serialized;
   }
 }

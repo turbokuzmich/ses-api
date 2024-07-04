@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  HttpCode,
   Post,
   UnauthorizedException,
   UsePipes,
@@ -16,8 +17,10 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('signin')
-  @UsePipes(new ZodValidationPipe(signinSchema))
-  async signin(@Body() signinDto: SigninDto) {
+  @HttpCode(200)
+  async signin(
+    @Body(new ZodValidationPipe(signinSchema)) signinDto: SigninDto,
+  ) {
     const result = await this.authService.signin(signinDto);
 
     return fn.pipe(
@@ -39,8 +42,10 @@ export class AuthController {
   }
 
   @Post('signup')
-  @UsePipes(new ZodValidationPipe(signupSchema))
-  async signup(@Body() signupDto: SignupDto) {
+  @HttpCode(200)
+  async signup(
+    @Body(new ZodValidationPipe(signupSchema)) signupDto: SignupDto,
+  ) {
     const result = await this.authService.signup(signupDto);
 
     return fn.pipe(

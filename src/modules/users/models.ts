@@ -1,4 +1,5 @@
 import { DataTypes } from 'sequelize';
+import * as _ from 'lodash';
 import {
   AllowNull,
   AutoIncrement,
@@ -43,6 +44,10 @@ export class User extends Model {
 
   @HasMany(() => Subscription, 'friendId')
   subscribers?: Subscription[];
+
+  get serialized() {
+    return _.omit(this.toJSON(), ['password', 'createdAt', 'updatedAt']);
+  }
 }
 
 @Table({
