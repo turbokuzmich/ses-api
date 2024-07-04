@@ -34,13 +34,15 @@ export class AuthService {
   private encrypt(something: string) {
     return createHmac('sha256', this.config.get('auth.secret', { infer: true }))
       .update(something)
-      .digest('hex');
+      .digest('base64')
+      .replace(/=/g, '')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_');
   }
 
   sign(data: any) {
     const base64 = Buffer.from(JSON.stringify(data)).toString('base64');
-    const secret = this.config.get('auth.secret', { infer: true });
-    const signature = createHmac('sha256', secret).update(base64).digest('hex');
+    const signature = this.encrypt(base64);
 
     return `${base64}.${signature}`;
   }
@@ -78,7 +80,8 @@ export class AuthService {
       return either.left('User already exists');
     }
 
-    const encryptedPassword = this.encrypt(data.password);
+    const salt = this.config.get('users.salt', { infer: true });
+    const encryptedPassword = this.encrypt(`${data.password}.${salt}`);
 
     const newUser = await this.userModel.create({
       name: data.nickname,
@@ -97,7 +100,8 @@ export class AuthService {
   async signin(
     data: SigninDto,
   ): Promise<either.Either<string, [User, string]>> {
-    const encryptedPassword = this.encrypt(data.password);
+    const salt = this.config.get('users.salt', { infer: true });
+    const encryptedPassword = this.encrypt(`${data.password}.${salt}`);
 
     const user = await this.userModel.findOne({
       where: {
