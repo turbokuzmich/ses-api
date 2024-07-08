@@ -6,24 +6,34 @@ async function up({ context }) {
    */
   const queryInterface = context;
 
-  await queryInterface.createTable('subscriptions', {
-    userId: {
-      type: Sequelize.INTEGER,
-      allowNull: false,
+  await queryInterface.createTable(
+    'subscriptions',
+    {
+      userId: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      friendId: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      updatedAt: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
+      createdAt: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
     },
-    friendId: {
-      type: Sequelize.INTEGER,
-      allowNull: false,
+    {
+      uniqueKeys: {
+        uk_subscriptions_userid_friendid: {
+          fields: ['userId', 'friendId'],
+        },
+      },
     },
-    updatedAt: {
-      type: Sequelize.DATE,
-      allowNull: false,
-    },
-    createdAt: {
-      type: Sequelize.DATE,
-      allowNull: false,
-    },
-  });
+  );
 
   await queryInterface.addConstraint('subscriptions', {
     type: 'primary key',
@@ -70,12 +80,28 @@ async function up({ context }) {
 
   await queryInterface.addIndex('subscriptions', ['userId', 'friendId'], {
     name: 'index_subscriptions_userid_friendid',
-    unique: true,
-    type: 'UNIQUE',
+    using: 'BTREE',
   });
 }
 
-async function down({ context: queryInterface }) {
+async function down({ context }) {
+  /**
+   * @type {QueryInterface}
+   */
+  const queryInterface = context;
+
+  await queryInterface.removeConstraint('subscriptions', 'distinct');
+
+  await queryInterface.removeConstraint(
+    'subscriptions',
+    'fk_subscriptions__friendid',
+  );
+
+  await queryInterface.removeConstraint(
+    'subscriptions',
+    'fk_subscriptions__userid',
+  );
+
   await queryInterface.dropTable('subscriptions');
 }
 

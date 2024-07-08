@@ -37,4 +37,8 @@ const umzug = new Umzug({
   logger: console,
 });
 
-umzug.up();
+if (process.argv[2] === 'down') {
+  umzug.down();
+} else {
+  umzug.up();
+}

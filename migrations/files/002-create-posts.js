@@ -31,6 +31,10 @@ async function up({ context }) {
     },
   });
 
+  await queryInterface.addIndex('posts', ['userId'], {
+    name: 'index_posts__userId',
+  });
+
   await queryInterface.addConstraint('posts', {
     type: 'foreign key',
     fields: ['userId'],
@@ -44,7 +48,14 @@ async function up({ context }) {
   });
 }
 
-async function down({ context: queryInterface }) {
+async function down({ context }) {
+  /**
+   * @type {QueryInterface}
+   */
+  const queryInterface = context;
+
+  await queryInterface.removeConstraint('posts', 'fk_posts__userid');
+
   await queryInterface.dropTable('posts');
 }
 
