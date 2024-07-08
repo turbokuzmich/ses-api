@@ -39,6 +39,15 @@ export class User extends Model {
   @Column(DataTypes.TEXT)
   password!: string;
 
+  @Column(DataTypes.TEXT)
+  fio?: string;
+
+  @Column(DataTypes.STRING)
+  vk?: string;
+
+  @Column(DataTypes.STRING)
+  telegram?: string;
+
   @HasMany(() => Subscription, 'userId')
   subscriptions?: Subscription[];
 
