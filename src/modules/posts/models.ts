@@ -12,6 +12,7 @@ import {
   Unique,
 } from 'sequelize-typescript';
 import { User } from '../users/models';
+import * as _ from 'lodash';
 
 @Table({
   tableName: 'posts',
@@ -38,6 +39,10 @@ export class Post extends Model {
 
   @BelongsTo(() => User, 'userId')
   user!: User;
+
+  get serialized() {
+    return _.omit(this.toJSON(), ['createdAt', 'updatedAt']);
+  }
 }
 
 @Table({

@@ -4,7 +4,6 @@ import {
   HttpCode,
   Post,
   UnauthorizedException,
-  UsePipes,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ZodValidationPipe } from 'src/pipes/zod';
