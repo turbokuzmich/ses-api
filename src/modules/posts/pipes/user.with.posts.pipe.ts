@@ -21,7 +21,11 @@ export class UserWithPostsPipe implements PipeTransform {
     );
 
     userWithPosts.set(value.dataValues);
-    await userWithPosts.reload({ include: [Post] });
+    await userWithPosts.reload({
+      include: [
+        { model: Post, separate: true, order: [['createdAt', 'DESC']] },
+      ],
+    });
 
     return userWithPosts;
   }
