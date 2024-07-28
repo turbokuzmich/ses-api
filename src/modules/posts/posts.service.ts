@@ -17,4 +17,11 @@ export class PostsService {
       userId: user.id,
     });
   }
+
+  getByUser(id: number) {
+    return this.postModel.findAll({
+      where: { userId: id },
+      order: [['createdAt', 'DESC']],
+    });
+  }
 }

@@ -5,6 +5,8 @@ import {
   Put,
   Body,
   HttpCode,
+  Param,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '../auth/guards/auth';
 import { GetUser } from '../auth/decorators/user.decorator';
@@ -34,5 +36,12 @@ export class PostsController {
     const newPost = await this.postsService.createPost(user, postData);
 
     return newPost.serialized;
+  }
+
+  @Get('by-user/:id')
+  async getByUser(@Param('id', ParseIntPipe) id: number) {
+    const posts = await this.postsService.getByUser(id);
+
+    return posts.map((post) => post.serialized);
   }
 }

@@ -41,7 +41,7 @@ export class Post extends Model {
   user!: User;
 
   get serialized() {
-    return _.omit(this.toJSON(), ['createdAt', 'updatedAt']);
+    return _.omit(this.toJSON(), ['updatedAt']);
   }
 }
 

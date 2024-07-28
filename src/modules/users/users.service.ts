@@ -11,14 +11,18 @@ export class UsersService {
     private readonly subscriptionModel: typeof Subscription,
   ) {}
 
+  getById(id: number) {
+    return this.userModel.findByPk(id);
+  }
+
   // @OnEvent('auth.signin')
   // async handleUserSignin(...args: any[]) {
   // console.log(args);
   // }
 
-  async listUsers() {
-    const users = await this.userModel.findAll();
+  // async listUsers() {
+  //   const users = await this.userModel.findAll();
 
-    return users;
-  }
+  //   return users;
+  // }
 }
