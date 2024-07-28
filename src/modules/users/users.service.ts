@@ -15,6 +15,15 @@ export class UsersService {
     return this.userModel.findByPk(id);
   }
 
+  getSubscription(targetUser: User, possibleFriendId: number) {
+    return this.subscriptionModel.findOne({
+      where: {
+        userId: targetUser.id,
+        friendId: possibleFriendId,
+      },
+    });
+  }
+
   // @OnEvent('auth.signin')
   // async handleUserSignin(...args: any[]) {
   // console.log(args);

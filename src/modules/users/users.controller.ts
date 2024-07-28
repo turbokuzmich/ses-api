@@ -34,6 +34,17 @@ export class UsersController {
     return (await user.update(me)).serialized;
   }
 
+  @Get('is-subscribed/:id')
+  @UseGuards(AuthGuard)
+  async amISubscribed(
+    @GetUser() user: User,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    const subscription = await this.usersService.getSubscription(user, id);
+
+    return { subscribed: Boolean(subscription) };
+  }
+
   @Get(':id')
   async userById(@Param('id', ParseIntPipe) id: number) {
     const user = await this.usersService.getById(id);
