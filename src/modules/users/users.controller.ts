@@ -7,6 +7,8 @@ import {
   Post,
   UseGuards,
   NotFoundException,
+  Put,
+  Delete,
 } from '@nestjs/common';
 import { AuthGuard } from '../auth/guards/auth';
 import { UsersService } from './users.service';
@@ -25,13 +27,21 @@ export class UsersController {
     return user.serialized;
   }
 
-  @Post('me')
+  @Put('me')
   @UseGuards(AuthGuard)
   async updateMe(
     @Body(new ZodValidationPipe(meSchema)) me: MeDto,
     @GetUser() user: User,
   ) {
     return (await user.update(me)).serialized;
+  }
+
+  @Get('subscriptions')
+  @UseGuards(AuthGuard)
+  async subscriptions(@GetUser() user: User) {
+    const subscriptions = await this.usersService.getSubscriptions(user);
+
+    return subscriptions.map((subscription) => subscription.serialized);
   }
 
   @Get('is-subscribed/:id')
@@ -43,6 +53,28 @@ export class UsersController {
     const subscription = await this.usersService.getSubscription(user, id);
 
     return { subscribed: Boolean(subscription) };
+  }
+
+  @Post('subscribe/:id')
+  @UseGuards(AuthGuard)
+  async subscribe(
+    @GetUser() user: User,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    const subscription = await this.usersService.subscribe(user, id);
+
+    return { subscribed: Boolean(subscription) };
+  }
+
+  @Delete('subscribe/:id')
+  @UseGuards(AuthGuard)
+  async unsubscribe(
+    @GetUser() user: User,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    await this.usersService.unsubscribe(user, id);
+
+    return { subscribed: false };
   }
 
   @Get(':id')

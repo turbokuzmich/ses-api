@@ -2,11 +2,11 @@ import {
   Controller,
   UseGuards,
   Get,
-  Put,
   Body,
   HttpCode,
   Param,
   ParseIntPipe,
+  Post,
 } from '@nestjs/common';
 import { AuthGuard } from '../auth/guards/auth';
 import { GetUser } from '../auth/decorators/user.decorator';
@@ -26,7 +26,7 @@ export class PostsController {
     return (user?.posts ?? []).map((post) => post.serialized);
   }
 
-  @Put()
+  @Post()
   @HttpCode(200)
   @UseGuards(AuthGuard)
   async createPost(

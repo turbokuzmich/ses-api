@@ -4,9 +4,9 @@ import {
   AllowNull,
   AutoIncrement,
   BelongsTo,
+  BelongsToMany,
   Column,
   ForeignKey,
-  HasMany,
   Index,
   Model,
   PrimaryKey,
@@ -48,11 +48,11 @@ export class User extends Model {
   @Column(DataTypes.STRING)
   telegram?: string;
 
-  @HasMany(() => Subscription, 'userId')
-  subscriptions?: Subscription[];
+  @BelongsToMany(() => User, () => Subscription, 'userId', 'friendId')
+  subscriptions?: User[];
 
-  @HasMany(() => Subscription, 'friendId')
-  subscribers?: Subscription[];
+  @BelongsToMany(() => User, () => Subscription, 'friendId')
+  subscribers?: User[];
 
   get serialized() {
     return _.omit(this.toJSON(), ['password', 'createdAt', 'updatedAt']);

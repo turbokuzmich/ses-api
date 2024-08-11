@@ -24,6 +24,28 @@ export class UsersService {
     });
   }
 
+  getSubscriptions(targetUser: User) {
+    return targetUser.$get('subscriptions');
+  }
+
+  subscribe(targetUser: User, friendId: number) {
+    return this.subscriptionModel.findOrCreate({
+      where: {
+        userId: targetUser.id,
+        friendId,
+      },
+    });
+  }
+
+  unsubscribe(targetUser: User, friendId: number) {
+    return this.subscriptionModel.destroy({
+      where: {
+        userId: targetUser.id,
+        friendId,
+      },
+    });
+  }
+
   // @OnEvent('auth.signin')
   // async handleUserSignin(...args: any[]) {
   // console.log(args);
