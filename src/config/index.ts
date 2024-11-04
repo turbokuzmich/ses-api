@@ -1,11 +1,18 @@
 import { resolve } from 'path';
 import { ConfigModule } from '@nestjs/config';
-import { Options } from '@sequelize/core';
+import { type Options } from '@sequelize/core';
+import {
+  type ClientConfiguration,
+  type UserClientConfigurationParams,
+} from '@openfga/sdk';
+
+export type FgaConfig = ClientConfiguration | UserClientConfigurationParams;
 
 export type Config = {
   environment: 'dev' | 'production';
   port: number;
   db: Options;
+  fga: FgaConfig;
   users: {
     salt: string;
   };
@@ -27,7 +34,7 @@ export default async function loadConfig(): Promise<Config> {
       dev: {
         logging: true,
         dialect: 'sqlite',
-        storage: resolve(process.cwd(), 'db.sqlite'),
+        storage: resolve(process.cwd(), 'db', 'db.sqlite'),
       },
       production: {
         dialect: 'postgres',
@@ -39,6 +46,11 @@ export default async function loadConfig(): Promise<Config> {
         ssl: false,
       },
     }[environment] as Options,
+    fga: {
+      apiUrl: process.env.FGA_API_URL,
+      storeId: process.env.FGA_STORE_ID,
+      authorizationModelId: process.env.FGA_AUTHORIZATION_MODEL_ID,
+    },
     // redis: {
     //   dev: {
     //     host: 'localhost',

@@ -1,0 +1,21 @@
+model
+  schema 1.1
+
+type user
+
+type entity
+  relations
+    define editor: [user, role#assignee]
+    define viewer: [user, role#assignee] or editor
+
+type role
+  relations
+    define assignee: [user]
+
+type track
+  relations
+    define owner: [user]
+
+type announcement
+  relations
+    define owner: [user]
