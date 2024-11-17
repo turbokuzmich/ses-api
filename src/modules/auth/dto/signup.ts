@@ -1,3 +1,4 @@
+import { Role } from 'src/modules/acl/types';
 import { z } from 'zod';
 
 export const signupSchema = z
@@ -5,6 +6,7 @@ export const signupSchema = z
     login: z.string().email(),
     password: z.string(),
     nickname: z.string(),
+    role: z.nativeEnum(Role),
   })
   .required();
 

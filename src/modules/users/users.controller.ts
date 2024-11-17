@@ -13,9 +13,9 @@ import {
 import { AuthGuard } from '../auth/guards/auth';
 import { UsersService } from './users.service';
 import { GetUser } from '../auth/decorators/user.decorator';
-import { User } from './models';
 import { ZodValidationPipe } from 'src/pipes/zod';
 import { MeDto, meSchema } from './dto/me';
+import type { User } from '@prisma/client';
 
 @Controller('users')
 export class UsersController {
@@ -24,7 +24,7 @@ export class UsersController {
   @Get('me')
   @UseGuards(AuthGuard)
   async me(@GetUser() user: User) {
-    return user.serialized;
+    return this.usersService.serialize(user);
   }
 
   @Put('me')
@@ -33,7 +33,9 @@ export class UsersController {
     @Body(new ZodValidationPipe(meSchema)) me: MeDto,
     @GetUser() user: User,
   ) {
-    return (await user.update(me)).serialized;
+    return this.usersService
+      .update(user, me)
+      .then((user) => this.usersService.serialize(user));
   }
 
   @Get('subscriptions')
@@ -41,7 +43,9 @@ export class UsersController {
   async subscriptions(@GetUser() user: User) {
     const subscriptions = await this.usersService.getSubscriptions(user);
 
-    return subscriptions.map((subscription) => subscription.serialized);
+    return subscriptions.map((subscription) =>
+      this.usersService.serialize(subscription),
+    );
   }
 
   @Get('is-subscribed/:id')
@@ -82,7 +86,7 @@ export class UsersController {
     const user = await this.usersService.getById(id);
 
     if (user) {
-      return user.serialized;
+      return this.usersService.serialize(user);
     }
 
     throw new NotFoundException();

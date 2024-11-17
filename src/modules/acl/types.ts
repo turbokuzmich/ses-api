@@ -21,6 +21,12 @@ export enum Entity {
   Announcements = 'announcements',
 }
 
+export enum EntityRelation {
+  Editor = 'editor',
+  Viewer = 'viewer',
+}
+
 export const Relation = {
   [Type.Role]: RoleRelation,
+  [Type.Entity]: EntityRelation,
 } as const;

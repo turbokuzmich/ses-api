@@ -1,27 +1,29 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
-import { Post, UserWithPosts } from './models';
 import { CreatePost } from './dto/post';
+import DbService from '../db/db.service';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class PostsService {
-  constructor(
-    @InjectModel(UserWithPosts)
-    private readonly userModel: typeof UserWithPosts,
-    @InjectModel(Post) private readonly postModel: typeof Post,
-  ) {}
+  constructor(private readonly db: DbService) {}
 
-  createPost(user: UserWithPosts, post: CreatePost) {
-    return this.postModel.create({
-      ...post,
-      userId: user.id,
+  createPost(user: User, post: CreatePost) {
+    return this.db.post.create({
+      data: {
+        ...post,
+        userId: user.id,
+      },
     });
   }
 
   getByUser(id: number) {
-    return this.postModel.findAll({
-      where: { userId: id },
-      order: [['createdAt', 'DESC']],
+    return this.db.post.findMany({
+      where: {
+        userId: id,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
   }
 }

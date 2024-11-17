@@ -1,33 +1,27 @@
 import { Injectable, PipeTransform } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
-import { Post, UserWithPosts } from '../models';
-import { User } from 'src/modules/users/models';
+import type { User, Post } from '@prisma/client';
+import DbService from 'src/modules/db/db.service';
+
+export type UserWithPosts = User & { posts: Post[] };
 
 @Injectable()
 export class UserWithPostsPipe implements PipeTransform {
-  constructor(
-    @InjectModel(UserWithPosts)
-    private userWithPostsModel: typeof UserWithPosts,
-  ) {}
+  constructor(private readonly db: DbService) {}
 
-  async transform(value: User | null) {
+  async transform(value: User | null): Promise<UserWithPosts | null> {
     if (value === null) {
       return null;
     }
 
-    const userWithPosts = new this.userWithPostsModel(
-      {},
-      { isNewRecord: false, raw: false },
-    );
-
-    userWithPosts.set(value.dataValues);
-
-    await userWithPosts.reload({
-      include: [
-        { model: Post, separate: true, order: [['createdAt', 'DESC']] },
-      ],
+    return this.db.user.findUnique({
+      where: { id: value.id },
+      include: {
+        posts: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+      },
     });
-
-    return userWithPosts;
   }
 }

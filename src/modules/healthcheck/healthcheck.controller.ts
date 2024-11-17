@@ -1,14 +1,12 @@
 import { Controller, Get } from '@nestjs/common';
-import { Sequelize } from 'sequelize-typescript';
+import DbService from '../db/db.service';
 
 @Controller('healthcheck')
 export class HealthCheckController {
-  constructor(private readonly sequelize: Sequelize) {}
+  constructor(private readonly db: DbService) {}
 
   @Get()
   async ping() {
-    await this.sequelize.authenticate();
-
-    return this.sequelize.getDialect();
+    await this.db.$queryRaw`SELECT 1+1`;
   }
 }

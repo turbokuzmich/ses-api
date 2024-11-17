@@ -1,13 +1,12 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { UsersController } from './users.controller';
-import { SequelizeModule } from '@nestjs/sequelize';
-import { User, Subscription } from './models';
 import { AuthModule } from '../auth/auth.module';
 import { UsersService } from './users.service';
 import { AuthMiddleware } from '../auth/auth.middleware';
+import { DbModule } from '../db/db.module';
 
 @Module({
-  imports: [SequelizeModule.forFeature([User, Subscription]), AuthModule],
+  imports: [AuthModule, DbModule],
   exports: [UsersService],
   controllers: [UsersController],
   providers: [UsersService],

@@ -1,9 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { SequelizeModule } from '@nestjs/sequelize';
+import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './modules/users/users.module';
-import { User, Subscription } from './modules/users/models';
-import { Post, UserWithPosts } from './modules/posts/models';
 import config from './config';
 import { AuthModule } from './modules/auth/auth.module';
 import { PostsModule } from './modules/posts/posts.module';
@@ -11,17 +8,12 @@ import { PostsModule } from './modules/posts/posts.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AclModule } from './modules/acl/acl.module';
 import { HealthCheckModule } from './modules/healthcheck/healthcheck.module';
+import { DbModule } from './modules/db/db.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ load: [config], isGlobal: true }),
-    SequelizeModule.forRootAsync({
-      inject: [ConfigService],
-      async useFactory(config: ConfigService) {
-        const db = await Promise.resolve(config.get('db'));
-        return { ...db, models: [User, UserWithPosts, Subscription, Post] };
-      },
-    }),
+    DbModule,
     // BullModule.forRootAsync({
     //   inject: [ConfigService],
     //   useFactory(config: ConfigService) {

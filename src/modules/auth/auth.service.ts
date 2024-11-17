@@ -2,8 +2,7 @@
 
 import { createHmac } from 'crypto';
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
-import { User } from '../users/models';
+import type { User } from '@prisma/client';
 import { SignupDto } from './dto/signup';
 import { ConfigService } from '@nestjs/config';
 import { either, option } from 'fp-ts';
@@ -15,6 +14,8 @@ import { Request } from 'express';
 import { z } from 'zod';
 import { pipe } from 'fp-ts/lib/function';
 import type { Config } from 'src/config';
+import DbService from '../db/db.service';
+import { AclService } from '../acl/acl.service';
 
 const tokenSchema = z.object({
   id: z.number().positive(),
@@ -25,7 +26,8 @@ type Token = z.infer<typeof tokenSchema>;
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel(User) private readonly userModel: typeof User,
+    private readonly db: DbService,
+    private readonly acl: AclService,
     // @InjectQueue('authorization') private readonly queue: Queue,
     private readonly config: ConfigService<Config, true>,
     // private readonly eventEmitter: EventEmitter2,
@@ -70,24 +72,29 @@ export class AuthService {
   async signup(
     data: SignupDto,
   ): Promise<either.Either<string, [User, string]>> {
-    const existingUserWithEmail = await this.userModel.findAll({
+    const UsersWithEmailCount = await this.db.user.count({
       where: {
         email: data.login,
       },
     });
 
-    if (existingUserWithEmail.length) {
+    if (UsersWithEmailCount) {
       return either.left('User already exists');
     }
 
     const salt = this.config.get('users.salt', { infer: true });
     const encryptedPassword = this.encrypt(`${data.password}.${salt}`);
 
-    const newUser = await this.userModel.create({
-      name: data.nickname,
-      email: data.login,
-      password: encryptedPassword,
+    const newUser = await this.db.user.create({
+      data: {
+        name: data.nickname,
+        email: data.login,
+        password: encryptedPassword,
+        role: data.role,
+      },
     });
+
+    await this.acl.setUserRole(newUser.id, data.role);
 
     // await this.queue.add({
     //   event: 'signup',
@@ -103,7 +110,7 @@ export class AuthService {
     const salt = this.config.get('users.salt', { infer: true });
     const encryptedPassword = this.encrypt(`${data.password}.${salt}`);
 
-    const user = await this.userModel.findOne({
+    const user = await this.db.user.findUnique({
       where: {
         email: data.login,
         password: encryptedPassword,
@@ -175,9 +182,9 @@ export class AuthService {
       option.match(
         () => Promise.resolve(option.none),
         (token) =>
-          User.findByPk(token.id).then((user) =>
-            user ? option.some(user) : option.none,
-          ),
+          this.db.user
+            .findUnique({ where: { id: token.id } })
+            .then((user) => (user ? option.some(user) : option.none)),
       ),
     );
   }

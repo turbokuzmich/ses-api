@@ -1,13 +1,12 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { SequelizeModule } from '@nestjs/sequelize';
-import { Post, UserWithPosts } from './models';
 import { PostsService } from './posts.service';
 import { PostsController } from './posts.controller';
 import { AuthModule } from '../auth/auth.module';
 import { AuthMiddleware } from '../auth/auth.middleware';
+import { DbModule } from '../db/db.module';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Post, UserWithPosts]), AuthModule],
+  imports: [AuthModule, DbModule],
   exports: [PostsService],
   providers: [PostsService],
   controllers: [PostsController],

@@ -10,8 +10,10 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '../auth/guards/auth';
 import { GetUser } from '../auth/decorators/user.decorator';
-import { UserWithPosts } from './models';
-import { UserWithPostsPipe } from './pipes/user.with.posts.pipe';
+import {
+  UserWithPostsPipe,
+  type UserWithPosts,
+} from './pipes/user.with.posts.pipe';
 import { ZodValidationPipe } from 'src/pipes/zod';
 import { type CreatePost, createPostSchema } from './dto/post';
 import { PostsService } from './posts.service';
@@ -23,25 +25,21 @@ export class PostsController {
   @Get('my')
   @UseGuards(AuthGuard)
   getMyPosts(@GetUser(UserWithPostsPipe) user: UserWithPosts | null) {
-    return (user?.posts ?? []).map((post) => post.serialized);
+    return user?.posts ?? [];
   }
 
   @Post()
   @HttpCode(200)
   @UseGuards(AuthGuard)
-  async createPost(
+  createPost(
     @Body(new ZodValidationPipe(createPostSchema)) postData: CreatePost,
     @GetUser(UserWithPostsPipe) user: UserWithPosts,
   ) {
-    const newPost = await this.postsService.createPost(user, postData);
-
-    return newPost.serialized;
+    return this.postsService.createPost(user, postData);
   }
 
   @Get('by-user/:id')
-  async getByUser(@Param('id', ParseIntPipe) id: number) {
-    const posts = await this.postsService.getByUser(id);
-
-    return posts.map((post) => post.serialized);
+  getByUser(@Param('id', ParseIntPipe) id: number) {
+    return this.postsService.getByUser(id);
   }
 }

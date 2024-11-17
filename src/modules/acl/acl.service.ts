@@ -22,4 +22,16 @@ export class AclService {
 
     return objects.map((object) => fromId(object)[1] as Role);
   }
+
+  async setUserRole(id: number, role: Role) {
+    await this.client.write({
+      writes: [
+        {
+          user: toId(Type.User, id),
+          relation: Relation[Type.Role].Assignee,
+          object: toId(Type.Role, role),
+        },
+      ],
+    });
+  }
 }

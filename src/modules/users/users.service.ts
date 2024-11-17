@@ -1,36 +1,64 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
-import { User, Subscription } from './models';
+import DbService from '../db/db.service';
+import type { User } from '@prisma/client';
+import { omit } from 'lodash';
 // import { OnEvent } from '@nestjs/event-emitter';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectModel(User) private readonly userModel: typeof User,
-    @InjectModel(Subscription)
-    private readonly subscriptionModel: typeof Subscription,
-  ) {}
+  constructor(private readonly db: DbService) {}
+
+  serialize(user: User) {
+    return omit(user, ['password']);
+  }
+
+  update(user: User, data: Partial<User>) {
+    return this.db.user.update({
+      where: {
+        id: user.id,
+      },
+      data,
+    });
+  }
 
   getById(id: number) {
-    return this.userModel.findByPk(id);
+    return this.db.user.findUnique({ where: { id } });
   }
 
   getSubscription(targetUser: User, possibleFriendId: number) {
-    return this.subscriptionModel.findOne({
+    return this.db.subscription.findUnique({
       where: {
-        userId: targetUser.id,
-        friendId: possibleFriendId,
+        userId_friendId: {
+          userId: targetUser.id,
+          friendId: possibleFriendId,
+        },
       },
     });
   }
 
-  getSubscriptions(targetUser: User) {
-    return targetUser.$get('subscriptions');
+  async getSubscriptions(targetUser: User) {
+    const subscriptions = await this.db.subscription.findMany({
+      where: {
+        userId: targetUser.id,
+      },
+      include: {
+        subscriber: true,
+      },
+    });
+
+    return subscriptions.map((subscription) => subscription.subscriber as User);
   }
 
   subscribe(targetUser: User, friendId: number) {
-    return this.subscriptionModel.findOrCreate({
+    return this.db.subscription.upsert({
       where: {
+        userId_friendId: {
+          userId: targetUser.id,
+          friendId,
+        },
+      },
+      update: {},
+      create: {
         userId: targetUser.id,
         friendId,
       },
@@ -38,10 +66,12 @@ export class UsersService {
   }
 
   unsubscribe(targetUser: User, friendId: number) {
-    return this.subscriptionModel.destroy({
+    return this.db.subscription.delete({
       where: {
-        userId: targetUser.id,
-        friendId,
+        userId_friendId: {
+          userId: targetUser.id,
+          friendId,
+        },
       },
     });
   }
