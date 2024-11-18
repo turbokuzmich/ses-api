@@ -34,4 +34,24 @@ export class AclService {
       ],
     });
   }
+
+  async check(
+    user: Type,
+    userId: string | number,
+    relation: string,
+    object: Type,
+    objectId: string | number,
+  ) {
+    try {
+      const { allowed } = await this.client.check({
+        user: toId(user, userId),
+        relation,
+        object: toId(object, objectId),
+      });
+
+      return Boolean(allowed);
+    } catch (_) {
+      return false;
+    }
+  }
 }
