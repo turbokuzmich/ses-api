@@ -85,6 +85,7 @@ export class AuthService {
     const salt = this.config.get('users.salt', { infer: true });
     const encryptedPassword = this.encrypt(`${data.password}.${salt}`);
 
+    // TODO need a transaction here
     const newUser = await this.db.user.create({
       data: {
         name: data.nickname,
