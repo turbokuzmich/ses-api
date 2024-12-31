@@ -26,7 +26,12 @@ export enum EntityRelation {
   Viewer = 'viewer',
 }
 
+export enum TrackRelation {
+  Owner = 'owner',
+}
+
 export const Relation = {
   [Type.Role]: RoleRelation,
   [Type.Entity]: EntityRelation,
+  [Type.Track]: TrackRelation,
 } as const;

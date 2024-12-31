@@ -44,15 +44,25 @@ model Post {
     updatedAt DateTime @updatedAt
 }
 
+enum MusicStatus {
+    INITIAL
+    UPLOADED
+    PROCESSING
+    PROCESSED
+    ERROR
+}
+
 model Music {
-    id          Int      @id @default(autoincrement())
-    title       String   @db.Text
-    description String   @db.Text
-    path        String   @db.Text
-    processed   Boolean  @default(false)
-    error       String?  @db.VarChar(255)
+    id          Int         @id @default(autoincrement())
+    title       String      @db.Text
+    description String      @db.Text
+    path        String      @db.Text
+    status      MusicStatus @default(INITIAL)
+    error       String?     @db.VarChar(255)
     userId      Int
-    author      User     @relation(fields: [userId], references: [id])
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
+    author      User        @relation(fields: [userId], references: [id])
+    createdAt   DateTime    @default(now())
+    updatedAt   DateTime    @updatedAt
+
+    @@index([status])
 }

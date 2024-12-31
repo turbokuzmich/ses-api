@@ -35,6 +35,18 @@ export class AclService {
     });
   }
 
+  async setTrackOwner(trackId: number, userId: number) {
+    await this.client.write({
+      writes: [
+        {
+          user: toId(Type.User, userId),
+          relation: Relation[Type.Track].Owner,
+          object: toId(Type.Track, trackId),
+        },
+      ],
+    });
+  }
+
   async check(
     user: Type,
     userId: string | number,

@@ -9,6 +9,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AclModule } from './modules/acl/acl.module';
 import { HealthCheckModule } from './modules/healthcheck/healthcheck.module';
 import { DbModule } from './modules/db/db.module';
+import { MusicModule } from './modules/music/music.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { DbModule } from './modules/db/db.module';
     UsersModule,
     PostsModule,
     HealthCheckModule,
+    MusicModule,
   ],
 })
 export class AppModule {}
