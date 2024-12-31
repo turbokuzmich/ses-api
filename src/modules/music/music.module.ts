@@ -5,9 +5,19 @@ import { MusicService } from './music.service';
 import { MusicController } from './music.controller';
 import { AuthMiddleware } from '../auth/auth.middleware';
 import { AclModule } from '../acl/acl.module';
+import { BullModule } from '@nestjs/bull';
+import { resolve } from 'path';
 
 @Module({
-  imports: [AuthModule, AclModule, DbModule],
+  imports: [
+    AuthModule,
+    AclModule,
+    DbModule,
+    BullModule.registerQueue({
+      name: 'audio',
+      processors: [resolve(__dirname, 'music.processor.js')],
+    }),
+  ],
   exports: [MusicService],
   providers: [MusicService],
   controllers: [MusicController],

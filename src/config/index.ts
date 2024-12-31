@@ -1,3 +1,4 @@
+import { BullRootModuleOptions } from '@nestjs/bull';
 import { ConfigModule } from '@nestjs/config';
 import {
   type ClientConfiguration,
@@ -6,10 +7,13 @@ import {
 
 export type FgaConfig = ClientConfiguration | UserClientConfigurationParams;
 
+export type Environment = 'dev' | 'production';
+
 export type Config = {
-  environment: 'dev' | 'production';
+  environment: Environment;
   port: number;
   fga: FgaConfig;
+  redis: BullRootModuleOptions;
   users: {
     salt: string;
   };
@@ -32,13 +36,15 @@ export default async function loadConfig(): Promise<Config> {
       storeId: process.env.FGA_STORE_ID,
       authorizationModelId: process.env.FGA_AUTHORIZATION_MODEL_ID,
     },
-    // redis: {
-    //   dev: {
-    //     host: 'localhost',
-    //     port: 6379,
-    //   },
-    //   production: {},
-    // }[environment],
+    redis: {
+      dev: {
+        redis: {
+          host: 'localhost',
+          port: 6379,
+        },
+      },
+      production: {},
+    }[environment],
     users: {
       salt: process.env.SALT ?? 'salt',
     },
