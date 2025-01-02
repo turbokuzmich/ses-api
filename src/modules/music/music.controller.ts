@@ -67,4 +67,10 @@ export class MusicController {
   uploads(@GetUser() user: User) {
     return this.musicService.getMusicByUser(user);
   }
+
+  @Get('track/:trackId')
+  @UseGuards(AuthGuard)
+  track(@Param('trackId', ParseIntPipe, MusicById) music: Music) {
+    return music;
+  }
 }

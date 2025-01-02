@@ -65,6 +65,9 @@ export class MusicService {
       where: {
         userId: user.id,
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
   }
 
