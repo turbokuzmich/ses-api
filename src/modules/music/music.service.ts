@@ -4,16 +4,27 @@ import { Music, User } from '@prisma/client';
 import { UploadMusic } from './dto/music';
 import { v4 as uuid } from 'uuid';
 import { AclService } from '../acl/acl.service';
-import { InjectQueue, OnQueueCompleted, Processor } from '@nestjs/bull';
+import {
+  InjectQueue,
+  OnQueueActive,
+  OnQueueCompleted,
+  OnQueueFailed,
+  Processor,
+} from '@nestjs/bull';
 import { Job, Queue } from 'bull';
+import { ConfigService } from '@nestjs/config';
+import { Config } from 'src/config';
+import { type AudioProcessingJobData } from './types';
 
 @Injectable()
 @Processor('audio')
 export class MusicService {
   constructor(
-    @InjectQueue('audio') private readonly audioQueue: Queue,
+    @InjectQueue('audio')
+    private readonly audioQueue: Queue<AudioProcessingJobData>,
     private readonly db: DbService,
     private readonly acl: AclService,
+    private readonly config: ConfigService<Config, true>,
   ) {}
 
   async initializeUpload(user: User, upload: UploadMusic) {
@@ -28,19 +39,48 @@ export class MusicService {
       },
     });
 
-    await this.acl.setTrackOwner(track.id, user.id);
+    await this.acl.setMusicOwner(track.id, user.id);
 
     return track;
   }
 
   async enqueueProcessMusic(music: Music) {
-    const job = await this.audioQueue.add(music);
+    const uploadPath = this.config.getOrThrow('uploadPath', { infer: true });
+
+    await this.db.music.update({
+      data: { status: 'UPLOADED' },
+      where: { id: music.id },
+    });
+
+    const job = await this.audioQueue.add(
+      { uploadPath, music },
+      { removeOnFail: true, removeOnComplete: true },
+    );
 
     return job.toJSON();
   }
 
+  @OnQueueActive()
+  private async onMusicProcessing(job: Job<AudioProcessingJobData>) {
+    await this.db.music.update({
+      data: { status: 'PROCESSING' },
+      where: { id: job.data.music.id },
+    });
+  }
+
   @OnQueueCompleted()
-  private async onMusicProcessed(job: Job<Music>, result: any) {
-    console.log(result);
+  private async onMusicProcessed(job: Job<AudioProcessingJobData>) {
+    await this.db.music.update({
+      data: { status: 'PROCESSED' },
+      where: { id: job.data.music.id },
+    });
+  }
+
+  @OnQueueFailed()
+  private async onMusicFailed(job: Job<AudioProcessingJobData>, error?: Error) {
+    await this.db.music.update({
+      data: { status: 'ERROR', error: error?.message ?? 'Unknown error' },
+      where: { id: job.data.music.id },
+    });
   }
 }

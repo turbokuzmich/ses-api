@@ -35,7 +35,7 @@ export class AclService {
     });
   }
 
-  async setTrackOwner(trackId: number, userId: number) {
+  async setMusicOwner(trackId: number, userId: number) {
     await this.client.write({
       writes: [
         {

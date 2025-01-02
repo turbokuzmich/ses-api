@@ -15,7 +15,9 @@ import { resolve } from 'path';
     DbModule,
     BullModule.registerQueue({
       name: 'audio',
-      processors: [resolve(__dirname, 'music.processor.js')],
+      processors: [
+        { concurrency: 10, path: resolve(__dirname, 'music.processor.js') },
+      ],
     }),
   ],
   exports: [MusicService],

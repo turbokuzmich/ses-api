@@ -189,4 +189,10 @@ export class AuthService {
       ),
     );
   }
+
+  async getUserById(id: number): Promise<option.Option<User>> {
+    const user = await this.db.user.findUnique({ where: { id } });
+
+    return user ? option.some(user) : option.none;
+  }
 }
