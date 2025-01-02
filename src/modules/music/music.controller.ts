@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   ForbiddenException,
+  Get,
   HttpCode,
   Param,
   ParseIntPipe,
@@ -58,5 +59,12 @@ export class MusicController {
     }
 
     throw new ForbiddenException('You are not allowed to edit track');
+  }
+
+  @Get('my/uploads')
+  @Roles([Entity.Music, EntityRelation.Editor])
+  @UseGuards(AclGuard)
+  uploads(@GetUser() user: User) {
+    return this.musicService.getMusicByUser(user);
   }
 }

@@ -60,6 +60,14 @@ export class MusicService {
     return job.toJSON();
   }
 
+  getMusicByUser(user: User) {
+    return this.db.music.findMany({
+      where: {
+        userId: user.id,
+      },
+    });
+  }
+
   @OnQueueActive()
   private async onMusicProcessing(job: Job<AudioProcessingJobData>) {
     await this.db.music.update({
