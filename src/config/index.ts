@@ -46,7 +46,12 @@ export default async function loadConfig(): Promise<Config> {
           port: 6379,
         },
       },
-      production: {},
+      production: {
+        redis: {
+          host: 'redis',
+          port: 6379,
+        },
+      },
     }[environment],
     users: {
       salt: process.env.SALT ?? 'salt',
