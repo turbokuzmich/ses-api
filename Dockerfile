@@ -5,6 +5,7 @@ RUN apk add --no-cache ffmpeg
 WORKDIR /app
 COPY . .
 RUN npm i
+RUN npx prisma generate --schema=./src/modules/db/schema.prisma
 RUN npm run build
 ENV NODE_ENV production
 RUN addgroup --system --gid 1001 nodejs
